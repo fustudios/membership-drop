@@ -9,44 +9,27 @@ function main(){
     var ssh3Address = new Array();
     var ssh3NFTs = new Array();
 
-    var ss1 = new Object();
-    var ss2 = new Object();
-    var ss3 = new Object();
+    var ss1 = {};
+    var ss2 = {};
+    var ss3 = {};
 
-    function readAndAssign(callback_)
-    {
-        fs.readFile("ss1AddressList.txt", 'utf8', (err, data) => {
-            if (err) throw err;
-            ssh1Address = data.toString().split(",");
-
-            fs.readFile("ss2AddressList.txt", 'utf8', (err, data) => {
-                if (err) throw err;
-                ssh2Address = data.toString().split(",");
-
-                fs.readFile("ss3AddressList.txt", 'utf8', (err, data) => {
-                    if (err) throw err;
-                    ssh3Address = data.toString().split(",");
-                    
-                    fs.readFile("ss1NFTList.txt", 'utf8', (err, data) => {
-                        if (err) throw err;
-                        ssh1NFTs = data.toString().split(",");
-                    
-                        fs.readFile("ss2NFTList.txt", 'utf8', (err, data) => {
-                            if (err) throw err;
-                            ssh2NFTs = data.toString().split(",");
-                        
-                            fs.readFile("ss3NFTList.txt", 'utf8', (err, data) => {
-                                if (err) throw err;
-                                ssh3NFTs = data.toString().split(",");
-                                callback_();
-                            });
-                        });
-                    });
-                });
-            });
-        });
+    function readFileAndSplit(path) {
+        const data = fs.readFileSync(path, 'utf8');
+        return data.toString().split(",");
     }
 
+    function readAndAssign() {
+        try {
+            ssh1Address = readFileAndSplit("ss1AddressList.txt");
+            ssh2Address = readFileAndSplit("ss2AddressList.txt");
+            ssh3Address = readFileAndSplit("ss3AddressList.txt");
+            ssh1NFTs = readFileAndSplit("ss1NFTList.txt");
+            ssh2NFTs = readFileAndSplit("ss2NFTList.txt");
+            ssh3NFTs = readFileAndSplit("ss3NFTList.txt");
+        } catch (err) {
+            console.error(err);
+        }
+    }
     function compute()
     {
         for (let i in ssh3Address) 
@@ -92,25 +75,9 @@ function main(){
             }
         }
 
-        fs.writeFile('./ss1Final.txt', objToString(ss1), err => {
-            if (err) {
-              console.error(err);
-            } else {
-                fs.writeFile('./ss2Final.txt', objToString(ss2), err => {
-                    if (err) {
-                      console.error(err);
-                    } else {
-                        fs.writeFile('./ss3Final.txt', objToString(ss3), err => {
-                            if (err) {
-                              console.error(err);
-                            } else {
-                              // file written successfully
-                            }
-                          });
-                    }
-                  });
-            }
-          });
+        fs.writeFileSync('./ss1Final.txt', objToString(ss1));
+        fs.writeFileSync('./ss2Final.txt', objToString(ss2));
+        fs.writeFileSync('./ss3Final.txt', objToString(ss3));
     }
 
     function objToString (obj) {
@@ -121,7 +88,8 @@ function main(){
         return str;
     }
 
-    readAndAssign(compute);
+    readAndAssign();
+    compute();
 }
 
 
