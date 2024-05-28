@@ -3,9 +3,9 @@ const fs = require('fs');
 function testResult()
 {
     for (let i = 1; i <= 3; i++) {
-        const dataSnapshot = fs.readFileSync(`ss${i}Final.snapshot.txt`, 'utf8').trim();
-        const data = fs.readFileSync(`ss${i}Final.txt`, 'utf8').trim();
-        compareData(`ss${i}Final.txt`, data, dataSnapshot);
+        const dataCorrect = fs.readFileSync(`test-data/snapshot${i}Out.correct.csv`, 'utf8').trim();
+        const data = fs.readFileSync(`test-data/snapshot${i}Out.csv`, 'utf8').trim();
+        compareData(`snapshot${i}Out.csv`, data, dataCorrect);
     }
 }
 

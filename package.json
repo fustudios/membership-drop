@@ -1,0 +1,12 @@
+{
+  "name": "membership-drop",
+  "version": "1.0.0",
+  "description": "The list of addresses that will receive the $FU airdrop.",
+  "main": "index.js",
+  "scripts": {
+    "go": "node index.js",
+    "test": "node index.js test-data && node test.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
