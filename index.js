@@ -7,6 +7,8 @@ const maxPage = 10;
 const multipliers = [1.2, 1.1, 1];
 const numFuTokens = 62_100_000;
 
+const dataDir = process.argv[2] || 'data';
+
 const getGraphQuery = (afterId = 0) => `
 {
     nfts(
@@ -21,14 +23,14 @@ const getGraphQuery = (afterId = 0) => `
 `;
 
 async function main(){
-    // writeSnapshotData('snapshot3.txt', await readSnapshot3(), '');
+    // writeSnapshotData('snapshot3.csv', await readSnapshot3(), '');
 
-    const balancesIn = snapshots.map(snapshot => readSnapshotData(`snapshot${snapshot}.txt`));
+    const balancesIn = snapshots.map(snapshot => readSnapshotData(`snapshot${snapshot}.csv`));
     const balances = recalcSnapshots(balancesIn);
     const weightedBalances = computeWeightedBalances(balances);
     const fuBalances = computeFuDrops(weightedBalances);
 
-    snapshots.map(snapshot => writeSnapshotData(`snapshot${snapshot}Out.txt`, balances[snapshot - 1]));
+    snapshots.map(snapshot => writeSnapshotData(`snapshot${snapshot}Out.csv`, balances[snapshot - 1]));
     writeSnapshotData('FU.csv', fuBalances);
 
     console.log('FU sum', sumBalances(fuBalances));
@@ -106,7 +108,7 @@ async function fetchHoldersAfterId(id) {
 }
 
 function readSnapshotData(filename) {
-    const data = fs.readFileSync(filename, 'utf8');
+    const data = fs.readFileSync(`${dataDir}/${filename}`, 'utf8');
     let result = {};
     for (const row of data.trim().split("\n")) {
         const [address, balance] = row.split(',').map(x => x.trim());
@@ -117,7 +119,7 @@ function readSnapshotData(filename) {
 
 function writeSnapshotData(filename, data) {
     fs.writeFileSync(
-        filename,
+        `${dataDir}/${filename}`,
         Object.entries(data).map(([addr, balance]) => `${addr},${balance}`).join("\n")
     );
 }
