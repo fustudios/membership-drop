@@ -1,11 +1,14 @@
 const fs = require("fs");
+const { Decimal } = require('./Decimal');
+
+const dec = x => Decimal.from(x);
 
 const snapshots = [1, 2, 3];
 const graphUrl = 'https://api.thegraph.com/subgraphs/name/bowsernet/open-season-staging';
 const graphPageSize = 1000;
 const maxPage = 10;
-const multipliers = [1.2, 1.1, 1];
-const numFuTokens = 62_100_000;
+const multipliers = [dec(1.2), dec(1.1), dec(1)];
+const numFuTokens = dec(62_100_000);
 
 const dataDir = process.argv[2] || 'data';
 
@@ -24,7 +27,6 @@ const getGraphQuery = (afterId = 0) => `
 
 async function main(){
     // writeSnapshotData('snapshot3.csv', await readSnapshot3(), '');
-
     const balancesIn = snapshots.map(snapshot => readSnapshotData(`snapshot${snapshot}.csv`));
     const balances = recalcSnapshots(balancesIn);
     const weightedBalances = computeWeightedBalances(balances);
@@ -33,20 +35,20 @@ async function main(){
     snapshots.map(snapshot => writeSnapshotData(`snapshot${snapshot}Out.csv`, balances[snapshot - 1]));
     writeSnapshotData('FU.csv', fuBalances);
 
-    console.log('FU sum', sumBalances(fuBalances));
+    console.log('FU sum', sumBalances(fuBalances).toString());
 }
 
 function recalcSnapshots(balancesIn) {
     const result = snapshots.map(_ => ({}));
 
     for (let [addr, balance3] of Object.entries(balancesIn[2])) {
-        let balance1 = balancesIn[0][addr] || 0;
-        let balance2 = balancesIn[1][addr] || 0;
+        let balance1 = balancesIn[0][addr] || dec(0);
+        let balance2 = balancesIn[1][addr] || dec(0);
 
-        balance1 = Math.min(balance1, balance2, balance3);
-        balance2 = Math.min(balance2, balance3);
-        balance2 -= balance1;
-        balance3 -= (balance1 + balance2);
+        balance1 = Decimal.min(balance1, balance2, balance3);
+        balance2 = Decimal.min(balance2, balance3);
+        balance2 = balance2.minus(balance1);
+        balance3 = balance3.minus(balance1.plus(balance2));
 
         if (balance1 > 0) result[0][addr] = balance1;
         if (balance2 > 0) result[1][addr] = balance2;
@@ -59,7 +61,7 @@ function computeWeightedBalances(balances) {
     let result = {};
     for (let i = 0; i < 3; i++) {
         for (const [addr, balance] of Object.entries(balances[i])) {
-            result[addr] = (result[addr] || 0) + balance * multipliers[i];
+            result[addr] = (result[addr] || dec(0)).plus(balance.times(multipliers[i]));
         }
     }
     return result;
@@ -67,16 +69,16 @@ function computeWeightedBalances(balances) {
 
 function computeFuDrops(weightedBalances) {
     const weightedSum = sumBalances(weightedBalances);
-    const fuPerBalance = numFuTokens / weightedSum;
+    const fuPerBalance = numFuTokens.div(weightedSum);
     const result = {};
     for (const [addr, balance] of Object.entries(weightedBalances)) {
-        result[addr] = balance * fuPerBalance;
+        result[addr] = balance.times(fuPerBalance);
     }
     return result;
 }
 
 function sumBalances(data) {
-    return Object.values(data).reduce((sum, count) => sum + parseFloat(count), 0);
+    return Object.values(data).reduce((sum, count) => sum.plus(dec(count)), dec(0));
 }
 
 async function readSnapshot3() {
@@ -112,7 +114,7 @@ function readSnapshotData(filename) {
     let result = {};
     for (const row of data.trim().split("\n")) {
         const [address, balance] = row.split(',').map(x => x.trim());
-        result[address] = balance;
+        result[address] = dec(balance);
     }
     return result;
 }
@@ -120,7 +122,7 @@ function readSnapshotData(filename) {
 function writeSnapshotData(filename, data) {
     fs.writeFileSync(
         `${dataDir}/${filename}`,
-        Object.entries(data).map(([addr, balance]) => `${addr},${balance}`).join("\n")
+        Object.entries(data).map(([addr, balance]) => `${addr},${balance.toRawString()}`).join("\n")
     );
 }
 
