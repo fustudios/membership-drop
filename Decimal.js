@@ -56,6 +56,7 @@ class Decimal {
         const separatorPos = str.length - this._decimals;
         const intPart = str.substring(0, separatorPos);
         const decPart = str.substring(separatorPos, str.length).replace(/0+$/, '');
+        if (decPart === '') return intPart;
         return `${intPart}.${decPart}`;
     }
     toString(significantDigits, decimalDigits) {

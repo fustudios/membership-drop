@@ -11,6 +11,7 @@ const multipliers = [dec(1.2), dec(1.1), dec(1)];
 const numFuTokens = dec(62_100_000);
 
 const dataDir = process.argv[2] || 'data';
+const isTest = dataDir === 'test-data';
 
 const getGraphQuery = (afterId = 0) => `
 {
@@ -25,7 +26,8 @@ const getGraphQuery = (afterId = 0) => `
 }
 `;
 
-async function main(){
+async function main() {
+    if (!isTest)
     writeSnapshotData('snapshot3.csv', await readSnapshot3(), '');
     const balancesIn = snapshots.map(snapshot => readSnapshotData(`snapshot${snapshot}.csv`));
     const balances = recalcSnapshots(balancesIn);
@@ -94,6 +96,7 @@ async function readSnapshot3() {
        page++;
        lastId = holders[holders.length - 1].tokenId;
     } while (page < maxPage);
+    console.log(result);
     return result;
 }
 
@@ -122,7 +125,9 @@ function readSnapshotData(filename) {
 function writeSnapshotData(filename, data) {
     fs.writeFileSync(
         `${dataDir}/${filename}`,
-        Object.entries(data).map(([addr, balance]) => `${addr},${balance.toRawString()}`).join("\n")
+        Object.entries(data)
+            .map(([addr, balance]) => `${addr},${typeof balance === 'number' ? balance.toString() : balance.toRawString()}`)
+            .join("\n")
     );
 }
 
