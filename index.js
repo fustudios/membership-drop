@@ -26,7 +26,7 @@ const getGraphQuery = (afterId = 0) => `
 `;
 
 async function main(){
-    // writeSnapshotData('snapshot3.csv', await readSnapshot3(), '');
+    writeSnapshotData('snapshot3.csv', await readSnapshot3(), '');
     const balancesIn = snapshots.map(snapshot => readSnapshotData(`snapshot${snapshot}.csv`));
     const balances = recalcSnapshots(balancesIn);
     const weightedBalances = computeWeightedBalances(balances);
