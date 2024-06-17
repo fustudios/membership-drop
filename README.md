@@ -2,21 +2,24 @@
 
 The list of addresses that will receive the $FU airdrop.
 
-For the last Snapshot:
+The following files contain the amount of NFTs being held at each address at the moment of the snapshot:
 
-Get latest:
-https://thegraph.com/hosted-service/subgraph/bowsernet/open-season-staging
+- `snapshot1.csv`
+- `snapshot2.csv`
+- `snapshot3.csv`
 
-Use the following query:
+The following files have the amounts adjusted based on the snapshot rules:
 
-{
-users(first: 1000, skip: 0, where:{ numTokens_gt: 0}) {
-id
-numTokens
-}
-}
+- `snapshot1Out.csv`
+- `snapshot2Out.csv`
+- `snapshot3Out.csv`
 
-There is a 1000 limit query so it needs to be done again until all 6,000 NFTs are populated.
+The final $FU amounts that will be airdropped to users can be found at `FU.csv`
 
-Aggregate the results and extract the correct format here:
-https://jsoneditoronline.org/#left=local.jidiwi&right=local.mevebi
+## Snapshot Dates
+
+| Snapshot Date            | Block                                                  |
+| ------------------------ | ------------------------------------------------------ |
+| Snapshot 01 (2023-06-21) | [BLOCK: 17524319](https://etherscan.io/block/17524319) |
+| Snapshot 02 (2023-08-30) | [BLOCK: 18024263](https://etherscan.io/block/18024263) |
+| Snapshot 03 (2024-06-17) | [BLOCK: 20112533](https://etherscan.io/block/20112533) |

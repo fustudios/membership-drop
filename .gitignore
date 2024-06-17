@@ -1,7 +1,8 @@
 .idea
-snapshot1Out.csv
-snapshot2Out.csv
-snapshot3Out.csv
-FU.csv
+test-data/snapshot1Out.csv
+test-data/snapshot2Out.csv
+test-data/snapshot3Out.csv
+test-data/FU.csv
 Decimal.ts
 tsconfig.json
+node_modules
