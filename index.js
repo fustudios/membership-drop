@@ -9,6 +9,7 @@ const graphPageSize = 1000;
 const maxPage = 10;
 const multipliers = [dec(1.2), dec(1.1), dec(1)];
 const numFuTokens = dec(62_100_000);
+const chunkSize = 400;
 
 const dataDir = process.argv[2] || 'data';
 const isTest = dataDir === 'test-data';
@@ -26,9 +27,20 @@ const getGraphQuery = (afterId = 0) => `
 }
 `;
 
+function chunkObject(hashMap, size) {
+    var entries = Object.entries(hashMap);
+    var result = [];
+    for (var i = 0; i < entries.length; i += size) {
+        var chunk = entries.slice(i, i + size);
+        result.push(Object.fromEntries(chunk));
+    }
+    return result;
+}
+
 async function main() {
-    if (!isTest)
-    writeSnapshotData('snapshot3.csv', await readSnapshot3(), '');
+    // the final snapshot has been fetched, see README for details
+    // if (!isTest) writeSnapshotData('snapshot3.csv', await readSnapshot3(), '');
+
     const balancesIn = snapshots.map(snapshot => readSnapshotData(`snapshot${snapshot}.csv`));
     const balances = recalcSnapshots(balancesIn);
     const weightedBalances = computeWeightedBalances(balances);
@@ -36,6 +48,9 @@ async function main() {
 
     snapshots.map(snapshot => writeSnapshotData(`snapshot${snapshot}Out.csv`, balances[snapshot - 1]));
     writeSnapshotData('FU.csv', fuBalances);
+    chunkObject(fuBalances, 400).map((chunk, chunkId) => {
+        writeDisperseInput(`FU-disperse-${chunkId + 1}.txt`, chunk);
+    });
 
     console.log('FU sum', sumBalances(fuBalances).toString());
 }
@@ -96,7 +111,6 @@ async function readSnapshot3() {
        page++;
        lastId = holders[holders.length - 1].tokenId;
     } while (page < maxPage);
-    console.log(result);
     return result;
 }
 
@@ -126,8 +140,15 @@ function writeSnapshotData(filename, data) {
     fs.writeFileSync(
         `${dataDir}/${filename}`,
         Object.entries(data)
-            .map(([addr, balance]) => `${addr},${typeof balance === 'number' ? balance.toString() : balance.toRawString()}`)
+            .map(([addr, balance]) => `${addr},${typeof balance === 'number' || typeof balance === 'bigint' ? balance.toString() : balance.toRawString()}`)
             .join("\n")
+    );
+}
+
+function writeDisperseInput(filename, data) {
+    fs.writeFileSync(
+        `${dataDir}/${filename}`,
+        `${Object.keys(data)}\n\n${Object.values(data).map(x => x.toBigInt(18))}`
     );
 }
 
